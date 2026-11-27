@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <!-- Plain net10.0 everywhere: Windows-only code is marked [SupportedOSPlatform("windows")] and guarded,
+         so Linux/macOS backends can be added later without retargeting the solution. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Release Please bumps this in its release PR; do not edit by hand. -->
+    <Version>0.1.0</Version>
+    <Product>Mountly</Product>
+    <Authors>Alexander Rubtsov</Authors>
+    <Company>Alexander Rubtsov</Company>
+    <Copyright>Copyright © 2026 Alexander Rubtsov</Copyright>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Alexxfromgit/Mountly</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+</Project>

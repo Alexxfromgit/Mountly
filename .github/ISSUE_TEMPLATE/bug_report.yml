@@ -1,0 +1,42 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Drop game.cue on the window
+        2. ...
+  - type: input
+    id: version
+    attributes:
+      label: Mountly version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Windows 11, Windows 10, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: Image format
+      options: [ISO, VHD / VHDX, BIN/CUE, NRG, MDS/MDF, CloneCD (CCD/IMG), Raw BIN/IMG, Not about an image]
+  - type: textarea
+    id: details
+    attributes:
+      label: Anything else?
+      description: The output of `mountly-cli info <image>` helps a lot for images that don't mount. Please remove personal paths.

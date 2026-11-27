@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            rid: win-x64
+            test: true
+          # Cross-compiled on the x64 runner, so its tests can't run here; this leg makes sure the ARM64
+          # package still builds before a release needs it.
+          - name: Windows ARM64
+            rid: win-arm64
+            test: false
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build Mountly.slnx -c Release
+
+      - name: Unit tests
+        if: matrix.test
+        run: dotnet test --project tests/Mountly.Tests -c Release --no-build
+
+      # Real mounts through Windows' Storage provider: an ISO, a BIN/CUE converted on the fly, and a rip of
+      # the mounted drive back to an ISO. Hosted runners allow it (they run as administrator).
+      - name: Mount integration tests
+        if: matrix.test
+        run: dotnet test --project tests/Mountly.Windows.Tests -c Release --no-build
+
+      # CI builds are versioned below the next release: <current version>-ci.<run number>.
+      - name: CI version
+        id: version
+        shell: pwsh
+        run: |
+          [xml] $props = Get-Content Directory.Build.props
+          "value=$($props.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1)-ci.${{ github.run_number }}" >> $env:GITHUB_OUTPUT
+
+      - name: Package
+        shell: pwsh
+        env:
+          RID: ${{ matrix.rid }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          ./build/publish.ps1 -Runtime $env:RID -Version $env:VERSION -OutDir "artifacts/pack-input/$env:RID"
+          dotnet tool restore
+          dotnet vpk pack --packId Mountly --packVersion $env:VERSION --packDir "artifacts/pack-input/$env:RID" `
+            --mainExe Mountly.exe --packTitle Mountly --packAuthors "Alexander Rubtsov" `
+            --icon src/Mountly.App/Assets/mountly.ico --runtime $env:RID --channel $env:RID --outputDir "artifacts/releases/$env:RID"
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: Mountly-${{ matrix.rid }}
+          path: artifacts/releases/${{ matrix.rid }}
+          retention-days: 14
+
+  # The core libraries (formats, ISO builder, checksums, mount service) are platform-neutral; keep them so
+  # Linux and macOS backends can be added later.
+  portable:
+    name: Linux (core libraries)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Build
+        run: dotnet build Mountly.slnx -c Release
+      - name: Unit tests
+        run: dotnet test --project tests/Mountly.Tests -c Release --no-build
+
+  workflows:
+    name: Workflow lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # actionlint also runs shellcheck on every run: block.
+      - uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color

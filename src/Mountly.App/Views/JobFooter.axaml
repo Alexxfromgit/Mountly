@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:t="using:Mountly.App.ViewModels.Tools"
+             xmlns:c="using:Mountly.App.Controls"
+             x:Class="Mountly.App.Views.JobFooter"
+             x:DataType="t:ToolViewModel">
+  <!-- Progress, cancel and the outcome of a tool's job. -->
+  <StackPanel Spacing="10" Margin="0,18,0,0">
+    <StackPanel Spacing="8" IsVisible="{Binding IsRunning}">
+      <ProgressBar Classes="job" Value="{Binding Progress}" Maximum="100" IsIndeterminate="{Binding IsIndeterminate}" />
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="{Binding Status}" Classes="muted num" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Classes="subtle" Content="Cancel" Command="{Binding CancelCommand}" />
+      </Grid>
+    </StackPanel>
+
+    <Border CornerRadius="10" Padding="14,10" IsVisible="{Binding HasResult}" Background="{DynamicResource MlChipBrush}"
+            Classes.good="{Binding ResultIsGood}" Classes.bad="{Binding ResultIsBad}">
+      <Border.Styles>
+        <Style Selector="Border.good">
+          <Setter Property="Background" Value="{DynamicResource MlAccentSoftBrush}" />
+        </Style>
+        <Style Selector="Border.bad">
+          <Setter Property="Background" Value="{DynamicResource MlDangerSoftBrush}" />
+        </Style>
+      </Border.Styles>
+      <Grid ColumnDefinitions="Auto,*">
+        <Path Classes="icon" Data="{x:Static c:Icons.Check}" Stroke="{DynamicResource MlGoodBrush}" Width="16" Height="16"
+              IsVisible="{Binding ResultIsGood}" VerticalAlignment="Top" Margin="0,1,10,0" />
+        <Path Classes="icon" Data="{x:Static c:Icons.Alert}" Stroke="{DynamicResource MlDangerBrush}" Width="16" Height="16"
+              IsVisible="{Binding ResultIsBad}" VerticalAlignment="Top" Margin="0,1,10,0" />
+        <SelectableTextBlock Grid.Column="1" Text="{Binding Result}" TextWrapping="Wrap" />
+      </Grid>
+    </Border>
+  </StackPanel>
+</UserControl>

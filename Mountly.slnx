@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Mountly.Core/Mountly.Core.csproj" />
+    <Project Path="src/Mountly.Formats/Mountly.Formats.csproj" />
+    <Project Path="src/Mountly.Tools/Mountly.Tools.csproj" />
+    <Project Path="src/Mountly.Windows/Mountly.Windows.csproj" />
+    <Project Path="src/Mountly.Cli/Mountly.Cli.csproj" />
+    <Project Path="src/Mountly.App/Mountly.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Mountly.Tests/Mountly.Tests.csproj" />
+    <Project Path="tests/Mountly.Windows.Tests/Mountly.Windows.Tests.csproj" />
+  </Folder>
+</Solution>

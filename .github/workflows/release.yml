@@ -1,0 +1,225 @@
+name: Release
+
+# Every push to main updates the Release Please PR (version bump + CHANGELOG.md, from Conventional
+# Commit PR titles). Merging that PR creates the vX.Y.Z tag and a draft GitHub release; the same run
+# then builds, tests and packs each Windows architecture with Velopack, uploads installers, update
+# packages and checksums, and publishes the release. Users never see a release without its downloads.
+#
+# Run it by hand with an existing tag to rebuild and replace that release's assets (no delta packages).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to rebuild, e.g. v0.2.0
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    # Releases (and the update feed the app reads) live only in the public repository; forks run CI but
+    # never cut releases.
+    if: github.event_name == 'push' && github.repository == 'Alexxfromgit/Mountly'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      created: ${{ steps.rp.outputs.release_created }}
+      tag: ${{ steps.rp.outputs.tag_name }}
+    steps:
+      - id: rp
+        uses: googleapis/release-please-action@v5
+        with:
+          # A PAT or GitHub App token, so CI runs on the release PR (PRs opened with GITHUB_TOKEN trigger no
+          # workflows). Falls back to GITHUB_TOKEN, which works apart from that.
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  prepare:
+    needs: release-please
+    if: >-
+      ${{ !cancelled() && github.repository == 'Alexxfromgit/Mountly' &&
+          (needs.release-please.outputs.created == 'true' || github.event_name == 'workflow_dispatch') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # draft releases are only visible with write access
+    outputs:
+      tag: ${{ steps.info.outputs.tag }}
+      version: ${{ steps.info.outputs.version }}
+      notes: ${{ steps.info.outputs.notes }}
+    steps:
+      - id: info
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag || inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::'$TAG' is not a vX.Y.Z tag"; exit 1
+          fi
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body > notes.md
+          delim="NOTES_$(openssl rand -hex 8)"
+          {
+            echo "tag=$TAG"
+            echo "version=${TAG#v}"
+            echo "notes<<$delim"; cat notes.md; echo; echo "$delim"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    name: build (${{ matrix.rid }})
+    needs: prepare
+    if: ${{ !cancelled() && needs.prepare.result == 'success' }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          # test: false for the cross-compiled leg (an x64 runner cannot run ARM64 code).
+          - { rid: win-x64, test: true }
+          - { rid: win-arm64, test: false }
+    runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write # Azure login for code signing (only used when configured)
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      RID: ${{ matrix.rid }}
+      PACK_INPUT: artifacts/pack-input/${{ matrix.rid }}
+      PACK_OUTPUT: artifacts/releases/${{ matrix.rid }}
+      STAGE: artifacts/stage/${{ matrix.rid }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Tests
+        if: matrix.test
+        run: |
+          dotnet build Mountly.slnx -c Release
+          dotnet test --project tests/Mountly.Tests -c Release --no-build
+          dotnet test --project tests/Mountly.Windows.Tests -c Release --no-build
+
+      - name: Publish
+        shell: pwsh
+        run: ./build/publish.ps1 -Runtime $env:RID -Version $env:VERSION -OutDir $env:PACK_INPUT
+
+      # ---- Optional code signing: switches on once its variables exist. Azure Trusted Signing is what
+      # Velopack supports directly; SignPath.io (free for open source) is the alternative (see docs/RELEASING.md).
+      - name: Azure login (code signing)
+        if: vars.AZURE_SIGNING_ENDPOINT != ''
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Pack with Velopack
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ needs.prepare.outputs.notes }}
+          REBUILD: ${{ github.event_name == 'workflow_dispatch' }}
+          AZURE_SIGNING_ENDPOINT: ${{ vars.AZURE_SIGNING_ENDPOINT }}
+          AZURE_SIGNING_ACCOUNT: ${{ vars.AZURE_SIGNING_ACCOUNT }}
+          AZURE_SIGNING_PROFILE: ${{ vars.AZURE_SIGNING_PROFILE }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $repo = "${{ github.server_url }}/${{ github.repository }}"
+          dotnet tool restore
+
+          # The previous release lets vpk build a delta package. There is none before the first release,
+          # and a rebuild of an existing tag skips it (it could be this very version, or a newer one).
+          if ($env:REBUILD -ne 'true') {
+            try { dotnet vpk download github --repoUrl $repo --token $env:GH_TOKEN --channel $env:RID -o $env:PACK_OUTPUT }
+            catch { Write-Host "::warning::No previous $env:RID release to build a delta from: $_" }
+          }
+
+          $notes = Join-Path $env:RUNNER_TEMP 'release-notes.md'
+          Set-Content -Path $notes -Value $env:NOTES -Encoding utf8NoBOM
+
+          $pack = @('vpk', 'pack', '--packId', 'Mountly', '--packVersion', $env:VERSION, '--packDir', $env:PACK_INPUT,
+                    '--packTitle', 'Mountly', '--packAuthors', 'Alexander Rubtsov', '--runtime', $env:RID,
+                    '--channel', $env:RID, '--releaseNotes', $notes, '--outputDir', $env:PACK_OUTPUT,
+                    '--mainExe', 'Mountly.exe', '--icon', 'src/Mountly.App/Assets/mountly.ico')
+          if ($env:AZURE_SIGNING_ENDPOINT) {
+            $meta = Join-Path $env:RUNNER_TEMP 'azure-signing.json'
+            @{ Endpoint = $env:AZURE_SIGNING_ENDPOINT; CodeSigningAccountName = $env:AZURE_SIGNING_ACCOUNT
+               CertificateProfileName = $env:AZURE_SIGNING_PROFILE } | ConvertTo-Json | Set-Content $meta
+            $pack += '--azureTrustedSignFile', $meta
+          } else { Write-Host '::warning::Code signing is not configured; the installer is unsigned.' }
+          dotnet @pack
+
+      - name: Stage release files
+        shell: bash
+        run: python build/stage-release.py --pack-dir "$PACK_OUTPUT" --channel "$RID" --version "$VERSION" --out "$STAGE"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ matrix.rid }}
+          path: ${{ env.STAGE }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: [prepare, build]
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write # build provenance attestations
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          path: assets
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: assets
+        run: |
+          sha256sum -- * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      # Signed provenance for every download (verify with `gh attestation verify <file> -R <repo>`).
+      - name: Attest build provenance
+        if: ${{ !github.event.repository.private }}
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: assets/*
+
+      - name: Upload assets
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            # A rebuild replaces everything, so no stale package from the earlier build is left behind.
+            gh release view "$TAG" -R "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' |
+              while read -r name; do gh release delete-asset "$TAG" "$name" -R "$GITHUB_REPOSITORY" --yes; done
+          fi
+          gh release upload "$TAG" assets/* --clobber -R "$GITHUB_REPOSITORY"
+
+      - name: Publish release
+        run: |
+          if [ "$(gh release view "$TAG" -R "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = "true" ]; then
+            gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --draft=false --latest
+          fi
+          echo "### Released $TAG" >> "$GITHUB_STEP_SUMMARY"
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" --json url --jq .url >> "$GITHUB_STEP_SUMMARY"

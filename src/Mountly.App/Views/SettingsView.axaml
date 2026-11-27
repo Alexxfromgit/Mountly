@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Mountly.App.ViewModels"
+             x:Class="Mountly.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Border.card.setting">
+      <Setter Property="Padding" Value="20,16" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+    <Style Selector="ToggleSwitch">
+      <Setter Property="OnContent" Value="" />
+      <Setter Property="OffContent" Value="" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer>
+    <StackPanel Margin="32,28,32,24" MaxWidth="760" HorizontalAlignment="Left">
+      <StackPanel Spacing="6" Margin="0,0,0,22">
+        <TextBlock Text="Settings" Classes="h1" />
+        <Border Height="3" Width="56" CornerRadius="2" HorizontalAlignment="Left" Background="{StaticResource MlLaserBrush}" />
+      </StackPanel>
+
+      <TextBlock Text="APPEARANCE" Classes="section" Margin="2,0,0,8" />
+      <Border Classes="card setting">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2" VerticalAlignment="Center">
+            <TextBlock Text="Theme" FontWeight="SemiBold" />
+            <TextBlock Text="Follow Windows, or always light or dark." Classes="caption" />
+          </StackPanel>
+          <ComboBox Grid.Column="1" ItemsSource="{x:Static vm:SettingsViewModel.Themes}" SelectedItem="{Binding Theme}" Width="150" />
+        </Grid>
+      </Border>
+
+      <TextBlock Text="STARTUP AND TRAY" Classes="section" Margin="2,12,0,8" />
+      <Border Classes="card setting">
+        <StackPanel Spacing="14">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Start with Windows" FontWeight="SemiBold" />
+              <TextBlock Text="Mountly starts in the tray when you sign in." Classes="caption" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding StartWithWindows}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Remount drives when Mountly starts" FontWeight="SemiBold" />
+              <TextBlock Text="Windows ejects images when it restarts; Mountly puts them back in their drives." Classes="caption" TextWrapping="Wrap" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding RemountOnStart}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Keep running in the tray when the window is closed" FontWeight="SemiBold" />
+              <TextBlock Text="Mounted images stay mounted either way." Classes="caption" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding CloseToTray}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Text="EXPLORER" Classes="section" Margin="2,12,0,8" />
+      <Border Classes="card setting">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <TextBlock Text="Add Mountly to Explorer's menus" FontWeight="SemiBold" />
+            <TextBlock Classes="caption" TextWrapping="Wrap"
+                       Text="“Mount with Mountly”, “Convert to ISO” and “Verify checksum” on image files, and “Create ISO with Mountly” on folders. Your default app for .iso files doesn't change. On Windows 11 they're under “Show more options”." />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShellIntegration}" Margin="16,0,0,0" />
+        </Grid>
+      </Border>
+
+      <TextBlock Text="UPDATES" Classes="section" Margin="2,12,0,8" />
+      <Border Classes="card setting">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Check for updates automatically" FontWeight="SemiBold" />
+              <TextBlock Text="New versions download in the background and install when you restart Mountly." Classes="caption" TextWrapping="Wrap" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding CheckForUpdates}" />
+          </Grid>
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Content="Check now" Command="{Binding CheckNowCommand}" CommandParameter="{x:False}" />
+            <Button Classes="primary" Content="Restart to update" Command="{Binding RestartToUpdateCommand}" IsVisible="{Binding IsUpdateReady}" />
+            <TextBlock Text="{Binding UpdateStatus}" Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Text="ABOUT" Classes="section" Margin="2,12,0,8" />
+      <Border Classes="card setting">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <Image Source="avares://Mountly/Assets/mountly.png" Width="48" Height="48" RenderOptions.BitmapInterpolationMode="HighQuality" />
+          <StackPanel Grid.Column="1" Margin="16,0,0,0" Spacing="2" VerticalAlignment="Center">
+            <TextBlock FontWeight="SemiBold">
+              <Run Text="Mountly" />
+              <Run Text="{Binding Version}" />
+            </TextBlock>
+            <TextBlock Text="Free and open source under the GNU GPL v3." Classes="caption" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+            <Button Classes="subtle" Content="Data folder" Command="{Binding OpenDataFolderCommand}" />
+            <Button Classes="subtle" Content="GitHub" Command="{Binding OpenRepositoryCommand}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

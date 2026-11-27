@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Mountly.App.ViewModels"
+             xmlns:c="using:Mountly.App.Controls"
+             x:Class="Mountly.App.Views.ImagesView"
+             x:DataType="vm:CatalogViewModel">
+
+  <DockPanel Margin="32,28,32,16">
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,20">
+      <StackPanel Spacing="6">
+        <TextBlock Text="Images" Classes="h1" />
+        <Border Height="3" Width="56" CornerRadius="2" HorizontalAlignment="Left" Background="{StaticResource MlLaserBrush}" />
+        <TextBlock Classes="muted" Margin="0,4,0,0" Text="Images you've mounted or added. Pin the ones you use often." />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+        <TextBox Text="{Binding Filter}" PlaceholderText="Search images" Width="220" />
+        <Button Classes="subtle" Content="Clear missing" Command="{Binding ClearMissingCommand}" />
+        <Button Classes="primary" Content="Add images…" Command="{Binding AddImagesCommand}" />
+      </StackPanel>
+    </Grid>
+
+    <Panel>
+      <Border Classes="card" Padding="6">
+        <ListBox x:Name="List" Classes="rows" ItemsSource="{Binding Items}" DoubleTapped="OnDoubleTapped">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:CatalogItemViewModel">
+              <Grid ColumnDefinitions="Auto,*,Auto,90,150,Auto" Height="44">
+                <c:DiscGlyph Width="28" Height="28" HasDisc="{Binding Exists}" HoleBrush="{DynamicResource MlSurfaceBrush}"
+                             OutlineBrush="{DynamicResource MlLineStrongBrush}" />
+                <StackPanel Grid.Column="1" Margin="14,0,12,0" VerticalAlignment="Center" Spacing="1">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Path Classes="icon" Data="{x:Static c:Icons.Pin}" Width="12" Height="12" Stroke="{DynamicResource MlAccentBrush}"
+                          IsVisible="{Binding IsPinned}" />
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding Folder}" Classes="caption" TextTrimming="CharacterEllipsis" IsVisible="{Binding Exists}" />
+                  <TextBlock Text="File not found" Classes="caption" Foreground="{DynamicResource MlDangerBrush}" IsVisible="{Binding IsMissing}" />
+                </StackPanel>
+                <Border Grid.Column="2" Classes="chip" VerticalAlignment="Center" Margin="0,0,12,0">
+                  <TextBlock Text="{Binding FormatText}" />
+                </Border>
+                <TextBlock Grid.Column="3" Text="{Binding SizeText}" Classes="muted num" VerticalAlignment="Center" TextAlignment="Right" />
+                <TextBlock Grid.Column="4" Text="{Binding LastUsedText}" Classes="caption" VerticalAlignment="Center" TextAlignment="Right" />
+                <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" Margin="16,0,0,0" VerticalAlignment="Center">
+                  <Button Classes="primary" Content="Mount" Padding="12,5" Command="{Binding MountCommand}" />
+                  <Button Classes="icon" ToolTip.Tip="More" AutomationProperties.Name="More">
+                    <Path Classes="icon" Data="{x:Static c:Icons.More}" Fill="{DynamicResource MlMutedBrush}" StrokeThickness="0.6" />
+                    <Button.Flyout>
+                      <MenuFlyout Placement="BottomEdgeAlignedRight">
+                        <MenuItem Header="{Binding PinLabel}" Command="{Binding TogglePinCommand}" />
+                        <MenuItem Header="Browse files" Command="{Binding BrowseCommand}" />
+                        <MenuItem Header="Verify checksum" Command="{Binding VerifyCommand}" />
+                        <MenuItem Header="Show in folder" Command="{Binding RevealCommand}" />
+                        <Separator />
+                        <MenuItem Header="Remove from list" Command="{Binding RemoveCommand}" />
+                      </MenuFlyout>
+                    </Button.Flyout>
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Border>
+
+      <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+        <c:DiscGlyph Width="72" Height="72" HoleBrush="{DynamicResource MlSurfaceBrush}" OutlineBrush="{DynamicResource MlLineStrongBrush}"
+                     HorizontalAlignment="Center" />
+        <TextBlock Text="No images yet" Classes="h2" HorizontalAlignment="Center" />
+        <TextBlock Text="Images you mount show up here." Classes="muted" HorizontalAlignment="Center" />
+      </StackPanel>
+    </Panel>
+  </DockPanel>
+</UserControl>

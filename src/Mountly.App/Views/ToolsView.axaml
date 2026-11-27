@@ -1,0 +1,240 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Mountly.App.ViewModels"
+             xmlns:t="using:Mountly.App.ViewModels.Tools"
+             xmlns:v="using:Mountly.App.Views"
+             xmlns:c="using:Mountly.App.Controls"
+             x:Class="Mountly.App.Views.ToolsView"
+             x:DataType="vm:ToolsViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.label">
+      <Setter Property="Foreground" Value="{DynamicResource MlMutedBrush}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="Medium" />
+      <Setter Property="Margin" Value="0,14,0,6" />
+    </Style>
+    <Style Selector="Border.toolicon">
+      <Setter Property="Width" Value="40" />
+      <Setter Property="Height" Value="40" />
+      <Setter Property="CornerRadius" Value="11" />
+      <Setter Property="Background" Value="{DynamicResource MlAccentSoftBrush}" />
+    </Style>
+    <Style Selector="Border.toolicon > Path">
+      <Setter Property="Stroke" Value="{DynamicResource MlAccentBrush}" />
+      <Setter Property="Width" Value="19" />
+      <Setter Property="Height" Value="19" />
+    </Style>
+  </UserControl.Styles>
+
+  <UserControl.DataTemplates>
+    <!-- Create ISO -->
+    <DataTemplate DataType="t:CreateIsoTool">
+      <StackPanel>
+        <TextBlock Classes="label" Text="Folder" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding SourceFolder}" PlaceholderText="The folder whose contents go into the ISO" />
+          <Button Grid.Column="1" Content="Browse…" Margin="8,0,0,0" Command="{Binding PickSourceCommand}" />
+        </Grid>
+        <Grid ColumnDefinitions="*,16,*">
+          <StackPanel>
+            <TextBlock Classes="label" Text="Volume label" />
+            <TextBox Text="{Binding VolumeLabel}" MaxLength="32" PlaceholderText="DATA" />
+          </StackPanel>
+          <StackPanel Grid.Column="2">
+            <TextBlock Classes="label" Text="Boot image (optional)" />
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBox Text="{Binding BootImage}" PlaceholderText="None" />
+              <Button Grid.Column="1" Content="…" Margin="8,0,0,0" Command="{Binding PickBootCommand}" />
+            </Grid>
+          </StackPanel>
+        </Grid>
+        <TextBlock Classes="label" Text="Save as" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding OutputPath}" PlaceholderText="Where to write the ISO" />
+          <Button Grid.Column="1" Content="Choose…" Margin="8,0,0,0" Command="{Binding PickOutputCommand}" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,22,0,0">
+          <Button Classes="primary" Content="Create ISO" Command="{Binding RunCommand}" />
+          <Button Content="Mount it" Command="{Binding MountOutputCommand}" IsVisible="{Binding CanMountOutput}" />
+          <Button Classes="subtle" Content="Show in folder" Command="{Binding RevealOutputCommand}" IsVisible="{Binding CanMountOutput}" />
+        </StackPanel>
+        <v:JobFooter />
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- Convert -->
+    <DataTemplate DataType="t:ConvertTool">
+      <StackPanel>
+        <TextBlock Classes="label" Text="Image" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding SourcePath}" PlaceholderText="A .cue, .nrg, .mds, .ccd, .bin or .img file" />
+          <Button Grid.Column="1" Content="Browse…" Margin="8,0,0,0" Command="{Binding PickSourceCommand}" />
+        </Grid>
+        <Border Classes="card" Background="{DynamicResource MlSurfaceAltBrush}" Padding="14,10" Margin="0,12,0,0"
+                IsVisible="{Binding Layout, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <TextBlock Text="{Binding Layout}" Classes="muted num" TextWrapping="Wrap" FontSize="12" />
+        </Border>
+        <TextBlock Classes="label" Text="Save as" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding OutputPath}" PlaceholderText="Where to write the ISO" />
+          <Button Grid.Column="1" Content="Choose…" Margin="8,0,0,0" Command="{Binding PickOutputCommand}" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,22,0,0">
+          <Button Classes="primary" Content="Convert" Command="{Binding RunCommand}" />
+          <Button Content="Mount it" Command="{Binding MountOutputCommand}" IsVisible="{Binding CanMountOutput}" />
+          <Button Classes="subtle" Content="Show in folder" Command="{Binding RevealOutputCommand}" IsVisible="{Binding CanMountOutput}" />
+        </StackPanel>
+        <TextBlock Classes="caption" Margin="0,14,0,0" TextWrapping="Wrap"
+                   Text="You don't have to convert to mount: Mountly converts these formats automatically when you mount them." />
+        <v:JobFooter />
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- Browse -->
+    <DataTemplate DataType="t:BrowseTool">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top">
+          <TextBlock Classes="label" Text="Image" />
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBox Text="{Binding ImagePath}" PlaceholderText="An ISO or any CD/DVD image" />
+            <Button Grid.Column="1" Content="Browse…" Margin="8,0,0,0" Command="{Binding PickImageCommand}" />
+          </Grid>
+          <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,14,0,8" IsVisible="{Binding IsOpen}">
+            <Button Classes="icon" Command="{Binding UpCommand}" ToolTip.Tip="Up one folder" AutomationProperties.Name="Up">
+              <Path Classes="icon" Data="{x:Static c:Icons.Up}" Width="14" Height="14" />
+            </Button>
+            <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center" Spacing="1">
+              <TextBlock Text="{Binding Breadcrumb}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding Summary}" Classes="caption" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+              <Button Content="Extract selected…" Command="{Binding ExtractSelectedCommand}"
+                      IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <Button Classes="primary" Content="Extract all…" Command="{Binding ExtractAllCommand}" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+        <v:JobFooter DockPanel.Dock="Bottom" />
+        <Border Classes="card" Background="{DynamicResource MlSurfaceAltBrush}" Padding="4" MinHeight="240" IsVisible="{Binding IsOpen}">
+          <ListBox Classes="rows" ItemsSource="{Binding Entries}" SelectedItem="{Binding Selected}" DoubleTapped="OnEntryDoubleTapped">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="t:EntryViewModel">
+                <Grid ColumnDefinitions="Auto,*,90,110" Height="26">
+                  <Path Classes="icon" Data="{Binding Icon}" Width="15" Height="15" />
+                  <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="10,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="2" Text="{Binding SizeText}" Classes="muted num" TextAlignment="Right" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding ModifiedText}" Classes="caption" TextAlignment="Right" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Border>
+      </DockPanel>
+    </DataTemplate>
+
+    <!-- Verify -->
+    <DataTemplate DataType="t:VerifyTool">
+      <StackPanel>
+        <TextBlock Classes="label" Text="File" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding FilePath}" PlaceholderText="The image (or any file) to check" />
+          <Button Grid.Column="1" Content="Browse…" Margin="8,0,0,0" Command="{Binding PickFileCommand}" />
+        </Grid>
+        <TextBlock Classes="label" Text="Expected checksum" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding Expected}" PlaceholderText="Paste an MD5, SHA-1 or SHA-256, or choose a checksum file (SHA256SUMS…)" />
+          <Button Grid.Column="1" Content="File…" Margin="8,0,0,0" Command="{Binding PickChecksumFileCommand}" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,22,0,0">
+          <Button Classes="primary" Content="Verify" Command="{Binding VerifyCommand}" />
+          <Button Content="Compute all checksums" Command="{Binding ComputeCommand}" />
+        </StackPanel>
+        <Border Classes="card" Background="{DynamicResource MlSurfaceAltBrush}" Padding="14,10" Margin="0,16,0,0" IsVisible="{Binding HasHashes}">
+          <Grid ColumnDefinitions="70,*,Auto" RowDefinitions="Auto,Auto,Auto">
+            <TextBlock Text="MD5" Classes="caption" VerticalAlignment="Center" />
+            <SelectableTextBlock Grid.Column="1" Text="{Binding Md5}" FontFamily="Cascadia Mono, Consolas, monospace" FontSize="12"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            <Button Grid.Column="2" Classes="link" Content="Copy" Command="{Binding CopyCommand}" CommandParameter="{Binding Md5}" />
+            <TextBlock Grid.Row="1" Text="SHA-1" Classes="caption" VerticalAlignment="Center" />
+            <SelectableTextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Sha1}" FontFamily="Cascadia Mono, Consolas, monospace" FontSize="12"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            <Button Grid.Row="1" Grid.Column="2" Classes="link" Content="Copy" Command="{Binding CopyCommand}" CommandParameter="{Binding Sha1}" />
+            <TextBlock Grid.Row="2" Text="SHA-256" Classes="caption" VerticalAlignment="Center" />
+            <SelectableTextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Sha256}" FontFamily="Cascadia Mono, Consolas, monospace" FontSize="12"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            <Button Grid.Row="2" Grid.Column="2" Classes="link" Content="Copy" Command="{Binding CopyCommand}" CommandParameter="{Binding Sha256}" />
+          </Grid>
+        </Border>
+        <v:JobFooter />
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- Disc to ISO -->
+    <DataTemplate DataType="t:RipTool">
+      <StackPanel>
+        <TextBlock Classes="label" Text="Drive" />
+        <Grid ColumnDefinitions="*,Auto">
+          <ComboBox ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" HorizontalAlignment="Stretch"
+                    PlaceholderText="No drive with a data disc" />
+          <Button Grid.Column="1" Content="Refresh" Margin="8,0,0,0" Command="{Binding RefreshDrivesCommand}" />
+        </Grid>
+        <TextBlock Classes="label" Text="Save as" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding OutputPath}" PlaceholderText="Where to write the ISO" />
+          <Button Grid.Column="1" Content="Choose…" Margin="8,0,0,0" Command="{Binding PickOutputCommand}" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,22,0,0">
+          <Button Classes="primary" Content="Copy disc to ISO" Command="{Binding RunCommand}" />
+          <Button Content="Mount it" Command="{Binding MountOutputCommand}" IsVisible="{Binding CanMountOutput}" />
+        </StackPanel>
+        <TextBlock Classes="caption" Margin="0,14,0,0" TextWrapping="Wrap"
+                   Text="Copies data discs sector by sector. Audio CDs and copy-protected discs aren't supported. Unreadable sectors are retried, then filled with zeros and reported." />
+        <v:JobFooter />
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <Grid ColumnDefinitions="300,*" Margin="32,28,32,16">
+    <!-- Tool list -->
+    <DockPanel>
+      <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,20">
+        <TextBlock Text="Tools" Classes="h1" />
+        <Border Height="3" Width="56" CornerRadius="2" HorizontalAlignment="Left" Background="{StaticResource MlLaserBrush}" />
+      </StackPanel>
+      <ListBox Classes="rows" ItemsSource="{Binding All}" SelectedItem="{Binding Selected}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="t:ToolViewModel">
+            <Grid ColumnDefinitions="Auto,*" Margin="0,4">
+              <Border Classes="toolicon">
+                <Path Classes="icon" Data="{Binding Icon}" />
+              </Border>
+              <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center" Spacing="1">
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Description}" Classes="caption" TextWrapping="Wrap" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+
+    <!-- Selected tool -->
+    <Border Grid.Column="1" Classes="card" Margin="24,0,0,0" Padding="26,22">
+      <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" Margin="0,0,0,4">
+          <Border Classes="toolicon">
+            <Path Classes="icon" Data="{Binding Selected.Icon}" />
+          </Border>
+          <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="2">
+            <TextBlock Text="{Binding Selected.Name}" Classes="h2" FontSize="17" />
+            <TextBlock Text="{Binding Selected.Description}" Classes="muted" />
+          </StackPanel>
+        </Grid>
+        <ScrollViewer>
+          <ContentControl Content="{Binding Selected}" />
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+  </Grid>
+</UserControl>

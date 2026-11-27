@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Mountly.Tools</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LTRData.DiscUtils.Core" />
+    <PackageReference Include="LTRData.DiscUtils.Iso9660" />
+    <PackageReference Include="LTRData.DiscUtils.Udf" />
+    <InternalsVisibleTo Include="Mountly.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mountly.Core\Mountly.Core.csproj" />
+    <ProjectReference Include="..\Mountly.Formats\Mountly.Formats.csproj" />
+  </ItemGroup>
+
+</Project>

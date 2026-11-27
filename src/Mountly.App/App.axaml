@@ -1,0 +1,303 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Mountly.App.App"
+             Name="Mountly"
+             RequestedThemeVariant="Default">
+
+  <!-- Mountly's look: obsidian glass with a teal "laser" accent. The one loud thing is the disc: an
+       iridescent sheen (teal → sky → violet → magenta → amber) on drives that hold an image.
+       Everything else stays quiet so the drives read first. -->
+  <Application.Resources>
+    <ResourceDictionary>
+      <!-- Fluent derives focus, selection, toggles and progress from these. -->
+      <Color x:Key="SystemAccentColor">#14B8A6</Color>
+      <Color x:Key="SystemAccentColorDark1">#0D9488</Color>
+      <Color x:Key="SystemAccentColorDark2">#0F766E</Color>
+      <Color x:Key="SystemAccentColorDark3">#115E59</Color>
+      <Color x:Key="SystemAccentColorLight1">#2DD4BF</Color>
+      <Color x:Key="SystemAccentColorLight2">#5EEAD4</Color>
+      <Color x:Key="SystemAccentColorLight3">#99F6E4</Color>
+
+      <!-- The disc sheen, shared by the drive glyphs and the "laser" hairline under the header. -->
+      <LinearGradientBrush x:Key="MlLaserBrush" StartPoint="0%,0%" EndPoint="100%,0%">
+        <GradientStop Offset="0" Color="#2DD4BF" />
+        <GradientStop Offset="0.3" Color="#60A5FA" />
+        <GradientStop Offset="0.55" Color="#8B5CF6" />
+        <GradientStop Offset="0.8" Color="#FF4FA3" />
+        <GradientStop Offset="1" Color="#F5B84A" />
+      </LinearGradientBrush>
+
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="MlWindowBrush" Color="#0B0A10" />
+          <SolidColorBrush x:Key="MlRailBrush" Color="#100F17" />
+          <SolidColorBrush x:Key="MlSurfaceBrush" Color="#15141D" />
+          <SolidColorBrush x:Key="MlSurfaceAltBrush" Color="#1B1A25" />
+          <SolidColorBrush x:Key="MlLineBrush" Color="#25232F" />
+          <SolidColorBrush x:Key="MlLineStrongBrush" Color="#34313F" />
+          <SolidColorBrush x:Key="MlTextBrush" Color="#EEEAF6" />
+          <SolidColorBrush x:Key="MlMutedBrush" Color="#8E89A3" />
+          <SolidColorBrush x:Key="MlFaintBrush" Color="#5F5A72" />
+          <SolidColorBrush x:Key="MlAccentBrush" Color="#2DD4BF" />
+          <SolidColorBrush x:Key="MlAccentSoftBrush" Color="#0F2B29" />
+          <SolidColorBrush x:Key="MlOnAccentBrush" Color="#04201C" />
+          <SolidColorBrush x:Key="MlAccentHoverBrush" Color="#5EEAD4" />
+          <SolidColorBrush x:Key="MlDangerBrush" Color="#FF6B78" />
+          <SolidColorBrush x:Key="MlDangerSoftBrush" Color="#2E1218" />
+          <SolidColorBrush x:Key="MlGoodBrush" Color="#4CD69B" />
+          <SolidColorBrush x:Key="MlWarnBrush" Color="#F5B84A" />
+          <SolidColorBrush x:Key="MlCardHoverBrush" Color="#1A1923" />
+          <SolidColorBrush x:Key="MlCardHoverLineBrush" Color="#1F6F66" />
+          <SolidColorBrush x:Key="MlNavSelectedBrush" Color="#1C1B27" />
+          <SolidColorBrush x:Key="MlChipBrush" Color="#221F2D" />
+          <SolidColorBrush x:Key="MlDropBrush" Color="#CC0B0A10" />
+          <SolidColorBrush x:Key="MlHubBrush" Color="#0B0A10" />
+          <!-- Fluent's own button resources: soft filled buttons instead of the default grey. -->
+          <SolidColorBrush x:Key="ButtonBackground" Color="#1F1D29" />
+          <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#2A2837" />
+          <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#24222F" />
+          <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#15141D" />
+          <SolidColorBrush x:Key="ButtonForeground" Color="#EEEAF6" />
+          <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#EEEAF6" />
+          <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#5F5A72" />
+          <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+          <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="Transparent" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="MlWindowBrush" Color="#F3F4F7" />
+          <SolidColorBrush x:Key="MlRailBrush" Color="#EBECF1" />
+          <SolidColorBrush x:Key="MlSurfaceBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="MlSurfaceAltBrush" Color="#F7F8FA" />
+          <SolidColorBrush x:Key="MlLineBrush" Color="#E2E4EA" />
+          <SolidColorBrush x:Key="MlLineStrongBrush" Color="#CDD1DA" />
+          <SolidColorBrush x:Key="MlTextBrush" Color="#14151C" />
+          <SolidColorBrush x:Key="MlMutedBrush" Color="#5E6372" />
+          <SolidColorBrush x:Key="MlFaintBrush" Color="#9095A3" />
+          <SolidColorBrush x:Key="MlAccentBrush" Color="#0D9488" />
+          <SolidColorBrush x:Key="MlAccentSoftBrush" Color="#DDF5F1" />
+          <SolidColorBrush x:Key="MlOnAccentBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="MlAccentHoverBrush" Color="#0F766E" />
+          <SolidColorBrush x:Key="MlDangerBrush" Color="#D33A4A" />
+          <SolidColorBrush x:Key="MlDangerSoftBrush" Color="#FCE8EA" />
+          <SolidColorBrush x:Key="MlGoodBrush" Color="#1E9E6A" />
+          <SolidColorBrush x:Key="MlWarnBrush" Color="#B7791F" />
+          <SolidColorBrush x:Key="MlCardHoverBrush" Color="#FBFCFD" />
+          <SolidColorBrush x:Key="MlCardHoverLineBrush" Color="#7DD3C8" />
+          <SolidColorBrush x:Key="MlNavSelectedBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="MlChipBrush" Color="#EEF0F4" />
+          <SolidColorBrush x:Key="MlDropBrush" Color="#D9F3F4F7" />
+          <SolidColorBrush x:Key="MlHubBrush" Color="#F3F4F7" />
+          <SolidColorBrush x:Key="ButtonBackground" Color="#ECEEF2" />
+          <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#E1E4EA" />
+          <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#D8DCE3" />
+          <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="#F3F4F7" />
+          <SolidColorBrush x:Key="ButtonForeground" Color="#14151C" />
+          <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#14151C" />
+          <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#14151C" />
+          <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#A0A4B0" />
+          <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+          <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+          <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="Transparent" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+
+    <Style Selector="Window">
+      <Setter Property="Background" Value="{DynamicResource MlWindowBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource MlTextBrush}" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- Surfaces -->
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource MlSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource MlLineBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="14" />
+    </Style>
+    <Style Selector="Border.card.hoverable">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.12" />
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Border.card.hoverable:pointerover">
+      <Setter Property="Background" Value="{DynamicResource MlCardHoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource MlCardHoverLineBrush}" />
+    </Style>
+    <Style Selector="Border.chip">
+      <Setter Property="Background" Value="{DynamicResource MlChipBrush}" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="7,2" />
+    </Style>
+    <Style Selector="Border.chip > TextBlock">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="Medium" />
+      <Setter Property="Foreground" Value="{DynamicResource MlMutedBrush}" />
+    </Style>
+    <Style Selector="Border.chip.accent">
+      <Setter Property="Background" Value="{DynamicResource MlAccentSoftBrush}" />
+    </Style>
+    <Style Selector="Border.chip.accent > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource MlAccentBrush}" />
+    </Style>
+
+    <!-- Type -->
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Foreground" Value="{DynamicResource MlMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.caption">
+      <Setter Property="Foreground" Value="{DynamicResource MlMutedBrush}" />
+      <Setter Property="FontSize" Value="11.5" />
+    </Style>
+    <Style Selector="TextBlock.h1">
+      <Setter Property="FontSize" Value="24" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="-0.4" />
+    </Style>
+    <Style Selector="TextBlock.h2">
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.letter">
+      <Setter Property="FontSize" Value="30" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="-0.5" />
+      <Setter Property="FontFeatures" Value="+tnum" />
+    </Style>
+    <Style Selector="TextBlock.num">
+      <Setter Property="FontFeatures" Value="+tnum" />
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="Foreground" Value="{DynamicResource MlFaintBrush}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="LetterSpacing" Value="0.8" />
+    </Style>
+
+    <!-- Buttons -->
+    <Style Selector="Button">
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="CornerRadius" Value="9" />
+      <Setter Property="Padding" Value="14,7" />
+    </Style>
+    <!-- The primary action: solid laser teal with dark ink (light ink in the light theme). -->
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{DynamicResource MlAccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource MlOnAccentBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="16,8" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource MlAccentHoverBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource MlOnAccentBrush}" />
+    </Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource MlAccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource MlOnAccentBrush}" />
+    </Style>
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource MlChipBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource MlFaintBrush}" />
+    </Style>
+    <Style Selector="Button.subtle, DropDownButton.subtle">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="10,6" />
+    </Style>
+    <Style Selector="Button.danger">
+      <Setter Property="Foreground" Value="{DynamicResource MlDangerBrush}" />
+    </Style>
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="2" />
+      <Setter Property="Foreground" Value="{DynamicResource MlAccentBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.icon">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="7" />
+      <Setter Property="Width" Value="32" />
+      <Setter Property="Height" Value="32" />
+    </Style>
+    <Style Selector="Button.icon PathIcon">
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+    </Style>
+
+    <!-- Navigation rail -->
+    <Style Selector="ListBox.nav">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem">
+      <Setter Property="Padding" Value="12,9" />
+      <Setter Property="Margin" Value="0,2" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Foreground" Value="{DynamicResource MlMutedBrush}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource MlSurfaceBrush}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource MlNavSelectedBrush}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected">
+      <Setter Property="Foreground" Value="{DynamicResource MlTextBrush}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected Border.navmark">
+      <Setter Property="Background" Value="{DynamicResource MlAccentBrush}" />
+    </Style>
+
+    <!-- Rows (catalog, image browser) -->
+    <Style Selector="ListBox.rows">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.rows ListBoxItem">
+      <Setter Property="Padding" Value="10,6" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Margin" Value="0,1" />
+    </Style>
+    <Style Selector="ListBox.rows ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource MlAccentSoftBrush}" />
+    </Style>
+
+    <!-- Inputs -->
+    <Style Selector="TextBox">
+      <Setter Property="CornerRadius" Value="9" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="CornerRadius" Value="9" />
+    </Style>
+
+    <Style Selector="ProgressBar.job">
+      <Setter Property="MinHeight" Value="6" />
+      <Setter Property="Height" Value="6" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Foreground" Value="{StaticResource MlLaserBrush}" />
+      <Setter Property="Background" Value="{DynamicResource MlChipBrush}" />
+    </Style>
+  </Application.Styles>
+
+  <TrayIcon.Icons>
+    <TrayIcons>
+      <TrayIcon Icon="avares://Mountly/Assets/mountly.ico" ToolTipText="Mountly" />
+    </TrayIcons>
+  </TrayIcon.Icons>
+</Application>

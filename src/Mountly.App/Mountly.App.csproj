@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>Mountly</AssemblyName>
+    <RootNamespace>Mountly.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\mountly.ico</ApplicationIcon>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Velopack" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mountly.Core\Mountly.Core.csproj" />
+    <ProjectReference Include="..\Mountly.Formats\Mountly.Formats.csproj" />
+    <ProjectReference Include="..\Mountly.Tools\Mountly.Tools.csproj" />
+    <ProjectReference Include="..\Mountly.Windows\Mountly.Windows.csproj" />
+    <!-- The CLI ships next to the app: Explorer verbs, scripts, and elevated operations use it. -->
+    <ProjectReference Include="..\Mountly.Cli\Mountly.Cli.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Development builds: put the CLI next to the app (releases publish both into one folder). -->
+  <Target Name="CopyCli" AfterTargets="Build">
+    <ItemGroup>
+      <CliFiles Include="$(RepoRoot)src\Mountly.Cli\bin\$(Configuration)\$(TargetFramework)\mountly-cli.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(CliFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

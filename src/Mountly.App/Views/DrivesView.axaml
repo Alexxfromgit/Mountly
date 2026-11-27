@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Mountly.App.ViewModels"
+             xmlns:c="using:Mountly.App.Controls"
+             x:Class="Mountly.App.Views.DrivesView"
+             x:DataType="vm:DrivesViewModel">
+
+  <ScrollViewer>
+    <StackPanel Margin="32,28,32,24">
+      <!-- Header -->
+      <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,24">
+        <StackPanel Spacing="6">
+          <TextBlock Text="Virtual drives" Classes="h1" />
+          <Border Height="3" Width="56" CornerRadius="2" HorizontalAlignment="Left" Background="{StaticResource MlLaserBrush}" />
+          <TextBlock Classes="muted" Margin="0,4,0,0">
+            <Run Text="{Binding Summary}" /><Run Text=" · drop an image anywhere to mount it" />
+          </TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+          <Button Classes="subtle" Command="{Binding EjectAllCommand}" IsVisible="{Binding HasMounted}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Path Classes="icon" Data="{x:Static c:Icons.Eject}" Width="14" Height="14" />
+              <TextBlock Text="Eject all" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding AddDriveCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Path Classes="icon" Data="{x:Static c:Icons.Plus}" Width="14" Height="14" />
+              <TextBlock Text="Add drive" />
+            </StackPanel>
+          </Button>
+          <Button Classes="primary" Command="{Binding MountImageCommand}" Content="Mount image…" />
+        </StackPanel>
+      </Grid>
+
+      <!-- Drives -->
+      <ItemsControl ItemsSource="{Binding Drives}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:DriveViewModel">
+            <Border Classes="card hoverable" Width="312" Height="214" Padding="18,16" Margin="0,0,16,16">
+              <Grid RowDefinitions="Auto,Auto,*,Auto">
+                <!-- Disc, letter, status, menu -->
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <c:DiscGlyph Width="62" Height="62" HasDisc="{Binding IsMounted}" Classes.busy="{Binding IsBusy}"
+                               HoleBrush="{DynamicResource MlSurfaceBrush}" OutlineBrush="{DynamicResource MlLineStrongBrush}">
+                    <c:DiscGlyph.RenderTransform>
+                      <RotateTransform />
+                    </c:DiscGlyph.RenderTransform>
+                  </c:DiscGlyph>
+                  <StackPanel Grid.Column="1" Margin="16,2,0,0" Spacing="4" VerticalAlignment="Center">
+                    <TextBlock Classes="letter" Text="{Binding Letter}" />
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Border Classes="chip" Classes.accent="{Binding IsMounted}">
+                        <TextBlock Text="{Binding Status}" />
+                      </Border>
+                    </StackPanel>
+                  </StackPanel>
+                  <Button Grid.Column="2" Classes="icon" VerticalAlignment="Top" ToolTip.Tip="More" AutomationProperties.Name="More">
+                    <Path Classes="icon" Data="{x:Static c:Icons.More}" Fill="{DynamicResource MlMutedBrush}" StrokeThickness="0.6" />
+                    <Button.Flyout>
+                      <MenuFlyout Placement="BottomEdgeAlignedRight">
+                        <MenuItem Header="Open in Explorer" Command="{Binding OpenCommand}" IsVisible="{Binding CanOpen}" />
+                        <MenuItem Header="Load another image…" Command="{Binding LoadCommand}" IsVisible="{Binding !IsExternal}" />
+                        <MenuItem Header="Show image file" Command="{Binding RevealCommand}" IsVisible="{Binding HasImage}" />
+                        <MenuItem Header="Copy image path" Command="{Binding CopyPathCommand}" IsVisible="{Binding HasImage}" />
+                        <Separator />
+                        <MenuItem Header="Drive letter" IsVisible="{Binding !IsExternal}" ItemsSource="{Binding LetterMenu}">
+                          <MenuItem.ItemContainerTheme>
+                            <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="vm:LetterChoice">
+                              <Setter Property="Header" Value="{Binding Header}" />
+                              <Setter Property="Command" Value="{Binding Command}" />
+                              <Setter Property="CommandParameter" Value="{Binding Value}" />
+                            </ControlTheme>
+                          </MenuItem.ItemContainerTheme>
+                        </MenuItem>
+                        <MenuItem Header="Keep as a Mountly drive" Command="{Binding KeepCommand}" IsVisible="{Binding IsExternal}" />
+                        <MenuItem Header="Remove drive" Command="{Binding RemoveCommand}" IsVisible="{Binding !IsExternal}" />
+                      </MenuFlyout>
+                    </Button.Flyout>
+                  </Button>
+                </Grid>
+
+                <!-- What's in the drive -->
+                <StackPanel Grid.Row="1" Margin="0,16,0,0" Spacing="3">
+                  <TextBlock Text="{Binding Title}" FontSize="14.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                             ToolTip.Tip="{Binding ImagePath}" />
+                  <TextBlock Text="{Binding Details}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+
+                <ProgressBar Grid.Row="2" Classes="job" VerticalAlignment="Center" Value="{Binding Progress}" Maximum="1"
+                             IsIndeterminate="{Binding !HasProgress}" IsVisible="{Binding IsBusy}" />
+
+                <!-- Actions -->
+                <Grid Grid.Row="3" ColumnDefinitions="*,8,*" IsEnabled="{Binding IsIdle}">
+                  <!-- Mounted -->
+                  <Button Grid.Column="0" HorizontalAlignment="Stretch" Command="{Binding OpenCommand}" IsVisible="{Binding IsMounted}">
+                    <StackPanel Orientation="Horizontal" Spacing="7">
+                      <Path Classes="icon" Data="{x:Static c:Icons.Folder}" Width="14" Height="14" />
+                      <TextBlock Text="Open" />
+                    </StackPanel>
+                  </Button>
+                  <Button Grid.Column="2" HorizontalAlignment="Stretch" Command="{Binding EjectCommand}" IsVisible="{Binding IsMounted}">
+                    <StackPanel Orientation="Horizontal" Spacing="7">
+                      <Path Classes="icon" Data="{x:Static c:Icons.Eject}" Width="14" Height="14" />
+                      <TextBlock Text="Eject" />
+                    </StackPanel>
+                  </Button>
+                  <!-- Ejected: reload the same image, or load another -->
+                  <Button Grid.Column="0" Classes="primary" HorizontalAlignment="Stretch" Content="Reload" Command="{Binding ReloadCommand}">
+                    <Button.IsVisible>
+                      <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="!IsMounted" />
+                        <Binding Path="HasImage" />
+                      </MultiBinding>
+                    </Button.IsVisible>
+                  </Button>
+                  <Button Grid.Column="2" HorizontalAlignment="Stretch" Content="Load…" Command="{Binding LoadCommand}">
+                    <Button.IsVisible>
+                      <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="!IsMounted" />
+                        <Binding Path="HasImage" />
+                      </MultiBinding>
+                    </Button.IsVisible>
+                  </Button>
+                  <!-- Empty -->
+                  <Button Grid.ColumnSpan="3" Classes="primary" HorizontalAlignment="Stretch" Content="Load image…" Command="{Binding LoadCommand}"
+                          IsVisible="{Binding !HasImage}" />
+                </Grid>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <!-- No drives at all -->
+      <Border Classes="card" Padding="32" IsVisible="{Binding IsEmpty}" HorizontalAlignment="Left" Width="640">
+        <StackPanel Spacing="10">
+          <TextBlock Text="No virtual drives yet" Classes="h2" />
+          <TextBlock Classes="muted" TextWrapping="Wrap"
+                     Text="Add a drive and load an image into it, or drop an image on this window. Mountly mounts ISO and virtual hard disks with Windows' own driver, and converts BIN/CUE, NRG, MDS/MDF and CloneCD images on the fly." />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

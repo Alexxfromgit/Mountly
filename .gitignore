@@ -1,0 +1,62 @@
+# Build output (publish/pack output, caches)
+artifacts/
+bin/
+obj/
+out/
+*.nupkg
+
+# Test results
+TestResults/
+*.trx
+coverage*.xml
+
+# Disc and disk images people keep next to the code (tests generate their own)
+*.iso
+*.bin
+*.cue
+*.nrg
+*.mdf
+*.mds
+*.img
+*.ccd
+*.sub
+*.vhd
+*.vhdx
+
+# IDEs and editors
+.idea/
+.vs/
+.vscode/
+*.user
+*.suo
+*.DotSettings.user
+*.swp
+
+# Local tool and assistant settings
+.claude/*.local.*
+.claude/settings.local.json
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets and signing material never belong in the repository
+.env
+.env.*
+*.pfx
+*.p12
+*.snk
+*.pem
+*.key
+*.cer
+secrets.json
+appsettings.*.local.json
+Properties/launchSettings.json
+
+# Velopack local output and package caches
+*.nupkg
+.vpk/

@@ -1,0 +1,152 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Mountly.App.ViewModels"
+        xmlns:v="using:Mountly.App.Views"
+        xmlns:c="using:Mountly.App.Controls"
+        x:Class="Mountly.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Mountly"
+        Icon="avares://Mountly/Assets/mountly.ico"
+        Width="1180" Height="740" MinWidth="880" MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        DragDrop.AllowDrop="True">
+
+  <Window.Styles>
+    <!-- Line icons: round 1.6 strokes on a 24-unit grid (Controls/Icons.cs). -->
+    <Style Selector="Path.icon">
+      <Setter Property="StrokeThickness" Value="1.6" />
+      <Setter Property="StrokeLineCap" Value="Round" />
+      <Setter Property="StrokeJoin" Value="Round" />
+      <Setter Property="Stretch" Value="Uniform" />
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+      <Setter Property="Stroke" Value="{DynamicResource MlMutedBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <!-- A drive that is mounting or converting spins its disc. -->
+    <Style Selector="c|DiscGlyph.busy">
+      <Style.Animations>
+        <Animation Duration="0:0:1.4" IterationCount="Infinite">
+          <KeyFrame Cue="0%">
+            <Setter Property="RotateTransform.Angle" Value="0" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="RotateTransform.Angle" Value="360" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </Window.Styles>
+
+  <Grid ColumnDefinitions="232,*">
+    <!-- Navigation rail -->
+    <Border Background="{DynamicResource MlRailBrush}" BorderBrush="{DynamicResource MlLineBrush}" BorderThickness="0,0,1,0">
+      <DockPanel Margin="16,20,16,16">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="11" Margin="6,0,0,26">
+          <Image Source="avares://Mountly/Assets/mountly.png" Width="34" Height="34" RenderOptions.BitmapInterpolationMode="HighQuality" />
+          <StackPanel VerticalAlignment="Center" Spacing="0">
+            <TextBlock Text="Mountly" FontSize="18" FontWeight="Bold" LetterSpacing="-0.3" />
+            <TextBlock Text="virtual drives" Classes="caption" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Footer: a live count of mounted images, and the version. -->
+        <StackPanel DockPanel.Dock="Bottom" Spacing="10">
+          <Border Classes="card" Padding="12,10" CornerRadius="12">
+            <Grid ColumnDefinitions="Auto,*">
+              <c:DiscGlyph Width="26" Height="26" HasDisc="{Binding Drives.HasMounted}"
+                           HoleBrush="{DynamicResource MlSurfaceBrush}" OutlineBrush="{DynamicResource MlLineStrongBrush}" />
+              <TextBlock Grid.Column="1" Text="{Binding Drives.Summary}" Margin="10,0,0,0" VerticalAlignment="Center"
+                         FontSize="12" TextWrapping="Wrap" />
+            </Grid>
+          </Border>
+          <TextBlock Text="{Binding Version}" Classes="caption" Margin="6,0,0,0" />
+        </StackPanel>
+
+        <ListBox Classes="nav" ItemsSource="{Binding Nav}" SelectedIndex="{Binding Page}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:NavItem">
+              <Grid ColumnDefinitions="Auto,Auto,*">
+                <Border Classes="navmark" Width="3" Height="18" CornerRadius="2" Margin="-6,0,9,0" Background="Transparent" />
+                <Path Grid.Column="1" Classes="icon" Data="{Binding Icon}" Stroke="{Binding $parent[ListBoxItem].Foreground}" />
+                <TextBlock Grid.Column="2" Text="{Binding Title}" Margin="12,0,0,0" VerticalAlignment="Center" FontSize="13.5"
+                           FontWeight="Medium" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- Pages -->
+    <Grid Grid.Column="1" RowDefinitions="*,Auto">
+      <Panel>
+        <Panel IsVisible="{Binding IsDrives}">
+          <v:DrivesView DataContext="{Binding Drives}" />
+        </Panel>
+        <Panel IsVisible="{Binding IsImages}">
+          <v:ImagesView DataContext="{Binding Catalog}" />
+        </Panel>
+        <Panel IsVisible="{Binding IsTools}">
+          <v:ToolsView DataContext="{Binding Tools}" />
+        </Panel>
+        <Panel IsVisible="{Binding IsSettings}">
+          <v:SettingsView DataContext="{Binding Settings}" />
+        </Panel>
+      </Panel>
+
+      <!-- Notices: what happened, and what can be done about it. -->
+      <ItemsControl Grid.Row="1" ItemsSource="{Binding Notices.Items}" Margin="24,0,24,16">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:NoticeViewModel">
+            <Border Classes="card" Padding="0" Margin="0,8,0,0" ClipToBounds="True">
+              <DockPanel>
+                <Panel DockPanel.Dock="Left" Width="4">
+                  <Border Background="{StaticResource MlLaserBrush}" />
+                  <Border Background="{DynamicResource MlDangerBrush}" IsVisible="{Binding IsError}" />
+                  <Border Background="{DynamicResource MlWarnBrush}" IsVisible="{Binding IsWarning}" />
+                </Panel>
+                <Button DockPanel.Dock="Right" Classes="icon" Margin="0,0,8,0" Command="{Binding DismissCommand}" ToolTip.Tip="Dismiss"
+                        AutomationProperties.Name="Dismiss">
+                  <Path Classes="icon" Data="{x:Static c:Icons.Close}" Width="12" Height="12" />
+                </Button>
+                <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding Actions}" VerticalAlignment="Center" Margin="12,0,4,0">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="8" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:NoticeAction">
+                      <Button Classes="primary" Content="{Binding Label}" Command="{Binding Command}" Padding="12,6" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <StackPanel Margin="16,11" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding Message}" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding HasMessage}" />
+                </StackPanel>
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <!-- Shown while images are dragged over the window. -->
+      <Border x:Name="DropOverlay" Grid.RowSpan="2" Background="{DynamicResource MlDropBrush}" IsVisible="False" IsHitTestVisible="False">
+        <Border Margin="28" CornerRadius="20" BorderThickness="2" BorderBrush="{DynamicResource MlAccentBrush}">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="14">
+            <c:DiscGlyph Width="96" Height="96" HasDisc="True" HoleBrush="{DynamicResource MlWindowBrush}" Classes="busy">
+              <c:DiscGlyph.RenderTransform>
+                <RotateTransform />
+              </c:DiscGlyph.RenderTransform>
+            </c:DiscGlyph>
+            <TextBlock Text="Drop to mount" Classes="h1" HorizontalAlignment="Center" />
+            <TextBlock Text="ISO · VHD · VHDX · BIN/CUE · NRG · MDS/MDF · CCD/IMG" Classes="muted" HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>
