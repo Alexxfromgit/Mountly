@@ -144,7 +144,8 @@ public sealed class ImageInspector : IDisposable
 
     private ImageEntry Entry(string path, bool isDirectory)
     {
-        var p = path.TrimStart('\\');
+        // DiscUtils returns paths with the platform's separator ('/' on Linux); paths here always use '\'.
+        var p = Normalize(path);
         DateTime? modified = null;
         try { modified = _fs.GetLastWriteTimeUtc(p); }
         catch (Exception ex) when (ex is IOException or NotSupportedException or ArgumentException) { }
