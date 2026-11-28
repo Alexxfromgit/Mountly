@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/drives-dark.png" alt="Mountly: virtual drives" width="100%">
+  <img src="branding/mountly-readme.png" alt="Mountly: virtual drives for Windows" width="100%">
 </p>
 
 # <img src="src/Mountly.App/Assets/mountly.png" alt="" width="36" align="top"> Mountly
@@ -41,6 +41,9 @@ Until releases are code signed, SmartScreen asks you to confirm ("More info" →
 | CLI | `mountly-cli` does all of the above from scripts. Run `mountly-cli --help` |
 | Look | Light and dark themes following Windows, with the spinning iridescent disc as a busy indicator |
 
+<p align="center">
+  <img src="docs/images/drives-dark.png" alt="Drives, dark theme" width="100%">
+</p>
 <p align="center">
   <img src="docs/images/tools-dark.png" alt="Tools" width="49%">
   <img src="docs/images/drives-light.png" alt="Drives, light theme" width="49%">
