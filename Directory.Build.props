@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- Release Please bumps this in its release PR; do not edit by hand. -->
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Product>Mountly</Product>
     <Authors>Alexander Rubtsov</Authors>
     <Company>Alexander Rubtsov</Company>
